@@ -6,11 +6,6 @@ const COLORS = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444'];
 export default function ResultsDashboard({ results }) {
     if (!results) return null;
 
-    // Format diversity data for charts
-    const genderData = Object.entries(results.Gender_Ratio).map(([name, value]) => ({
-        name, value: parseFloat(value)
-    }));
-
     // Calculate seniority mix from candidates
     const roleCounts = results.Candidates.reduce((acc, c) => {
         acc[c.Role] = (acc[c.Role] || 0) + 1;
@@ -47,39 +42,20 @@ export default function ResultsDashboard({ results }) {
             </div>
 
             {/* Charts Section */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                <div className="glass-panel">
-                    <h3>Seniority Mix (1:2:3 Target)</h3>
-                    <div style={{ height: '200px' }}>
-                        <ResponsiveContainer width="100%" height="100%">
-                            <PieChart>
-                                <Pie data={roleData} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
-                                    {roleData.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
-                                </Pie>
-                                <RechartsTooltip />
-                                <Legend />
-                            </PieChart>
-                        </ResponsiveContainer>
-                    </div>
-                </div>
-
-                <div className="glass-panel">
-                    <h3>Gender Diversity</h3>
-                    <div style={{ height: '200px' }}>
-                        <ResponsiveContainer width="100%" height="100%">
-                            <PieChart>
-                                <Pie data={genderData} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
-                                    {genderData.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[(index + 2) % COLORS.length]} />)}
-                                </Pie>
-                                <RechartsTooltip />
-                                <Legend />
-                            </PieChart>
-                        </ResponsiveContainer>
-                    </div>
+            <div className="glass-panel" style={{ gridColumn: 'span 2' }}>
+                <h3>Seniority Mix (1:2:3 Target)</h3>
+                <div style={{ height: '300px' }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                            <Pie data={roleData} cx="50%" cy="50%" innerRadius={80} outerRadius={110} paddingAngle={5} dataKey="value">
+                                {roleData.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
+                            </Pie>
+                            <RechartsTooltip />
+                            <Legend />
+                        </PieChart>
+                    </ResponsiveContainer>
                 </div>
             </div>
-
-            {/* Roster & Explainability */}
             <div className="glass-panel">
                 <h3 style={{ marginBottom: '1.5rem' }}>Selected Team Roster ({results.Team_List})</h3>
 

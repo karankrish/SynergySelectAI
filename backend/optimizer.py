@@ -1,5 +1,6 @@
 import pandas as pd
 from typing import List, Dict
+import math
 
 def run_optimizer(department: str, team_size: int, total_budget: float) -> Dict:
     from .data_loader import employee_df
@@ -44,7 +45,6 @@ def run_optimizer(department: str, team_size: int, total_budget: float) -> Dict:
 
     # Step 4: Budget Constraints (Greedy-Knapsack Swap)
     while current_cost(selected) > total_budget:
-        # Find candidate to swap out: the one with lowest PCR
         # Sort current team by PCR ascending
         selected.sort(key=lambda x: x['PCR'])
         
@@ -52,10 +52,11 @@ def run_optimizer(department: str, team_size: int, total_budget: float) -> Dict:
         for candidate in selected:
             role = candidate['Role']
             cand_salary = candidate['Monthly_Salary']
+            
             # Find cheaper available candidate for the same role
             cheaper_options = [c for c in available[role] if c['Monthly_Salary'] < cand_salary]
+            
             if cheaper_options:
-                # Pick the one with the best SynergyScore among cheaper options to drop minimal quality
                 best_cheaper = max(cheaper_options, key=lambda x: x['SynergyScore'])
                 selected.remove(candidate)
                 selected.append(best_cheaper)
@@ -65,46 +66,7 @@ def run_optimizer(department: str, team_size: int, total_budget: float) -> Dict:
                 break
                 
         if not swapped:
-            # Cannot reduce cost further within role constraints
-            raise ValueError(f"Unable to form a team within the budget of {total_budget}. Minimum required cost is {current_cost(selected)}.")
-
-    # Step 5: Diversity Rebalancing
-    def check_diversity(team):
-        genders = [e['Gender'] for e in team]
-        total = len(genders)
-        if total == 0: return False, None, None
-        counts = {g: genders.count(g) for g in set(genders)}
-        for g, count in counts.items():
-            if count / total > 0.70:
-                return True, g, count/total # Needs rebalance, majority gender
-        return False, None, None
-
-    needs_rebalance, majority_gender, _ = check_diversity(selected)
-    while needs_rebalance:
-        # Sort majority members in team by SynergyScore ascending (lowest first)
-        majority_members = sorted([e for e in selected if e['Gender'] == majority_gender], key=lambda x: x['SynergyScore'])
-        
-        swapped = False
-        for cand in majority_members:
-            role = cand['Role']
-            # Find minority candidates in available pool for same role
-            minority_options = [c for c in available[role] if c['Gender'] != majority_gender]
-            # Ensure budget stringency
-            budget_slack = total_budget - current_cost(selected)
-            valid_options = [c for c in minority_options if c['Monthly_Salary'] - cand['Monthly_Salary'] <= budget_slack]
-            
-            if valid_options:
-                best_minority = max(valid_options, key=lambda x: x['SynergyScore'])
-                selected.remove(cand)
-                selected.append(best_minority)
-                available[role].remove(best_minority)
-                available[role].append(cand)
-                swapped = True
-                break
-                
-        if not swapped:
-            break # Can't rebalance further
-        needs_rebalance, majority_gender, _ = check_diversity(selected)
+            raise ValueError(f"Unable to form a team within the budget of {total_budget} while respecting role criteria. Minimum required cost is {current_cost(selected)}.")
 
     # Prepare Output
     total_team_cost = current_cost(selected)
