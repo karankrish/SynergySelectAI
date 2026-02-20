@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+env/
+.env
+
+# Node / React (Frontend)
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/.DS_Store
+frontend/*.local
+.npm/
+
+# IDE / OS Settings
+.DS_Store
+.vscode/
+.idea/
+
+# Logs
+*.log
+backend.log
+frontend.log
+server.log
